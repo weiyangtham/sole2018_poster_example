@@ -1,0 +1,206 @@
+---
+title: "**Temporary Co-location and Knowledge Flows**"
+output: 
+  postr::flex_dashboard_poster:
+    render_print: false
+    css: ["resources/fontawesome-all.css", "sole2018.css"]
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(hrbrthemes)
+library(patchwork)
+```
+
+## Header row {data-height=15}
+
+###
+
+<table style="width:100%">
+<tr>
+  <td><center><h3>
+  **The Effect of Temporary Co-location on Knowledge Flows: \s \newline Evidence from NIH Study Sections**
+  </h3></center></td>
+  <td rowspan="2">
+  <img src="resources/logo.png" style="width:128px"></img>
+  </td>
+</tr>
+<tr><td><center>
+  **Wei Yang Tham** &nbsp;
+  <i class="fab fa-twitter"></i> \@wytham88 &nbsp;
+  <i class="fas fa-envelope"></i> weiyang.tham\@gmail.com &nbsp;
+  <i class="fas fa-globe"></i> <a href="https://wytham.rbind.io" style="text-decoration:none;">wytham.rbind.io</a> &nbsp;
+  <i class="fab fa-github"></i> <a href="https://github.com/weiyangtham" style="text-decoration:none;">github.com/weiyangtham</a>
+  </center></td>
+</tr>
+</table> 
+
+<hr>
+
+<!--
+**Abstract** This paragraph will be rendered inside a wide box right below the
+poster title and authors information.
+The `render_print` format option is set to `TRUE` by default in this poster
+sample, and will result in `postr::render` being called when knitting the
+document (see `help("flex_dashboard_poster", package = postr)`).
+To disable this (recommended in the initial stages of poster development)
+set the `render_print` option to `FALSE`.
+-->
+
+
+
+## Body row {data-height=75}
+
+### **Introduction** {data-width=400}
+
+#### Research Question
+
+- **Do short-term interactions facilitate knowledge flows?**
+
+#### Motivation
+
+- Face-to-face interactions through transitory meetings (e.g. conferences) are believed to be important for knowledge exchange and diffusion
+
+- Empirical challenges: Co-location is often endogenous
+    
+#### Contribution
+- Estimate effect of temporary co-location with plausibly exogenous variation
+- Able to study long-run outcomes
+
+### **Persistent increase in citations between scientist-pairs** {data-width=800}
+
+```{r, eval = TRUE, fig.width=7.5, dpi=300}
+
+# Fake coefficients
+cites_coef = 
+  data_frame(
+    period = rep(-10:10, 3), 
+    nyears = rep(1:3, each = 21), 
+    estimate = c(rep(0, 21), c(rep(0, 13), rep(0.1, 8)), c(rep(0, 13), rep(0.2, 8)))
+  )
+
+cites_coef = cites_coef %>%
+  mutate(estimate = estimate + rnorm(63, sd = 0.01))
+
+theme_set(theme_minimal(base_size = 18))
+
+coefplot = cites_coef %>% 
+  ggplot(aes(period, estimate, colour = factor(nyears))) + 
+  geom_line(size = 1) + 
+  geom_hline(yintercept = 0L, linetype = 2) + 
+  geom_vline(xintercept = 0, linetype = 2, size = 0.8) + 
+  geom_vline(xintercept = 1, linetype = 2, size = 0.8, alpha = 0.8) + 
+  geom_vline(xintercept = 2, linetype = 2, size = 0.8, alpha = 0.6) + 
+  labs(x = "Years since first co-location", 
+       y = "Number of citations", 
+       subtitle = "DiD estimates",
+       colour = "Years of overlap") +
+  theme(legend.position = c(0.3, 0.6)) + 
+  scale_colour_manual(values = c("#bb1200", "#fdb863", "#8078bc")) + 
+  NULL
+
+
+leftlabel = 
+  tribble(
+    ~x, ~y, ~label, 
+    3.25, -1, "Crick",
+    2.25, 2, "Watson"
+  )
+
+leftterms = 
+  tribble(
+    ~x, ~start, ~end, 
+    3, -3, 1, 
+    2,  0, 4
+  )
+
+
+pleft = ggplot() + 
+  geom_text(data = leftlabel, aes(x = x, y = y, label = label)) +
+  geom_errorbar(data = leftterms, aes(x, ymin = start, ymax = end)) + 
+  coord_flip() + 
+  # theme_minimal() + 
+  theme_void() + 
+  annotate("rect", 
+           xmin = 2, xmax = 3, ymin = 0, ymax = 1, 
+           alpha = 1, fill = "#bb1200") + 
+  labs(title = str_wrap("Crick-Watson are treated with 1 year overlap", 25)) +
+  theme(plot.title = element_text(hjust = 0.5, colour = "#bb1200")) + 
+  NULL
+
+rightterms = 
+  tribble(
+    ~x, ~start, ~end, 
+    3, -4, 0, 
+    2,  0, 4
+  )
+
+rightlabel = 
+  tribble(
+    ~x, ~y, ~label, 
+    3.25, -2, "Crick",
+    2.25, 2, "Franklin"
+  )
+  
+
+pright = ggplot() + 
+  geom_text(data = rightlabel, aes(x = x, y = y, label = label)) +
+  geom_errorbar(data = rightterms, aes(x, ymin = start, ymax = end)) + 
+  coord_flip() + 
+  theme_void() + 
+  labs(title = "Crick-Franklin are a control pair") + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  NULL
+
+(pleft | pright) / coefplot + plot_layout(ncol = 1, heights = c(1, 3))
+
+```
+
+
+### **Data and Methods** {data-width=400}
+
+#### Setting: NIH Study Sections
+
+- Panels of scientists convened to review grant applications
+- Reviewers serve 4-year terms, attending three meetings a year
+
+#### Data
+
+- Study section meeting rosters
+- Author-ity: disambiguated authors in biomedical literature
+- Web of Science: citations
+
+#### Research Design
+
+- **Treatment**: Scientist-pairs that served on the same study section at the same time
+- **Control**: Scientist-pairs that served on the same study section but never at the same time
+
+## Footer row {data-height=15} 
+
+### Conclusion {data-width=45}
+
+- Repeated short-term interactions increase the total number of citations between a scientist-pair
+- Such interactions may influence the direction of science and allocation of credit
+
+### Future Work {data-width=45}
+- Are there heterogeneous effects by intellectual distance?
+- Does the *direction* of citations matter?
+- Additional outcomes: coauthorship, textual measures of intellectual distance
+
+### Acknowledgments {data-width=20, .small}
+
+<small>
+I am grateful to Danielle Li, Vetle Torvik, and Neil Smalheiser for help with data. I received support from the NBER-IFS International Network on the Value of Medical Research.
+</small>
+
+
+<!--
+### My Website {data-width=10 .small}
+
+<td rowspan="0"></center>
+  <img src="website_QR.png" style="width:80px"></img>
+</center></td>
+
+-->
+
