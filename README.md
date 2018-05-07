@@ -1,2 +1,2 @@
 # sole2018_poster_example
-Code for reproducing similar poster to the one I did for SOLE 2018. 
+Code for reproducing similar poster to the one I did for SOLE 2018. THESE ARE NOT REAL RESULTS!
